@@ -126,6 +126,29 @@ describe('AuthService', () => {
         service.initiateLogin('admin@zextjv.com', 'WrongPass', '127.0.0.1', 'Chrome'),
       ).rejects.toThrow(UnauthorizedException);
     });
+
+    it('throws ForbiddenException when OTP resend is rate-limited', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      mockRedis.exists.mockResolvedValueOnce(true); // rate limited
+
+      await expect(
+        service.initiateLogin('admin@zextjv.com', 'P@ssword123', '127.0.0.1', 'Chrome'),
+      ).rejects.toThrow('OTP already sent');
+    });
+
+    it('increments failedAttempts on wrong password', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ ...mockUser, failedAttempts: 3 });
+
+      await expect(
+        service.initiateLogin('admin@zextjv.com', 'BadPass', '127.0.0.1', 'Chrome'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ failedAttempts: 4 }),
+        }),
+      );
+    });
   });
 
   describe('verifyOtp', () => {
@@ -181,6 +204,23 @@ describe('AuthService', () => {
       await expect(
         service.verifyOtp('user-1', '123456', '127.0.0.1', 'Chrome'),
       ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('throws UnauthorizedException when OTP retry limit exceeded', async () => {
+      const codeHash = await bcrypt.hash('111111', 10);
+      mockPrisma.otpCode.findFirst.mockResolvedValue({
+        id: 'otp-1',
+        userId: 'user-1',
+        codeHash,
+        expiresAt: new Date(Date.now() + 60_000),
+        isUsed: false,
+        attempts: 3, // already at limit
+      });
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+      await expect(
+        service.verifyOtp('user-1', '111111', '127.0.0.1', 'Chrome'),
+      ).rejects.toThrow('Too many incorrect OTP attempts');
     });
   });
 });
