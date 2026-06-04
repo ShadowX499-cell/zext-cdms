@@ -13,8 +13,8 @@ build/
 .env
 .env.local
 .env.*.local
-apps/api/.env
-apps/web/.env.local
+apps/api/.env*
+apps/web/.env*
 
 # Prisma
 apps/api/prisma/migrations/.env
@@ -39,6 +39,7 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+.eslintcache
 
 # Test coverage
-coverage/
+**/coverage/
