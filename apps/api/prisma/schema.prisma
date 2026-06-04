@@ -1,0 +1,397 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  SECRETARY
+}
+
+enum VehicleCategory {
+  NG_USED
+  TOKUNBO
+  SCOOTER_BIKE
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  SOLD
+  SWAPPED
+  ARCHIVED
+}
+
+enum ModeOfPurchase {
+  OUTRIGHT
+  TRADE_IN
+  SWAP
+  AUCTION
+  CONSIGNMENT
+}
+
+enum ModeOfSale {
+  OUTRIGHT
+  HIRE_PURCHASE
+  PART_PAYMENT
+  SWAP_CASH
+  AUCTION
+}
+
+enum ModeOfSwap {
+  DIRECT
+  CUSTOMER_TOP_UP
+  ZEXT_TOP_UP
+}
+
+enum CashDirection {
+  CUSTOMER_PAYS
+  ZEXT_PAYS
+}
+
+enum ReceiptType {
+  NG_USED_CAR
+  TOKUNBO_CAR
+  SWAP_DEAL
+  ACCESSORIES_BIKE
+}
+
+enum AccessoryCategory {
+  CAR_ACCESSORY
+  SCOOTER_BIKE
+}
+
+enum PaymentMode {
+  CASH
+  TRANSFER
+  POS
+}
+
+enum AuditCategory {
+  AUTHENTICATION
+  VEHICLE_REGISTRATION
+  SALES
+  SWAPS
+  RECEIPTS
+  ACCESSORIES
+  REVENUE
+  CUSTOMERS
+  USER_MANAGEMENT
+  NOTIFICATIONS
+  SYSTEM
+}
+
+enum VehicleHistoryEvent {
+  REGISTERED
+  STATUS_CHANGED
+  SALE_RECORDED
+  SWAP_RECORDED
+  RECEIPT_ISSUED
+  RECORD_EDITED
+  ARCHIVED
+}
+
+enum LoginOutcome {
+  SUCCESS
+  FAILED
+  LOCKED
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  passwordHash   String
+  role           UserRole  @default(SECRETARY)
+  isActive       Boolean   @default(true)
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  otpCodes       OtpCode[]
+  loginHistory   LoginHistory[]
+  vehicles       Vehicle[]        @relation("RegisteredBy")
+  sales          Sale[]           @relation("SaleRegisteredBy")
+  salesReversed  Sale[]           @relation("SaleReversedBy")
+  swaps          Swap[]           @relation("SwapRegisteredBy")
+  receiptsIssued Receipt[]        @relation("IssuedBy")
+  receiptsVoided Receipt[]        @relation("VoidedBy")
+  vehicleHistory VehicleHistory[]
+  accessorySales AccessorySale[]
+  auditLogs      AuditLog[]
+  notifications  Notification[]
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  userId    String
+  codeHash  String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LoginHistory {
+  id         String       @id @default(cuid())
+  userId     String
+  ipAddress  String
+  deviceInfo String
+  outcome    LoginOutcome
+  createdAt  DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Vehicle {
+  id             String          @id @default(cuid())
+  dateBought     DateTime
+  name           String
+  category       VehicleCategory
+  chassisNumber  String          @unique
+  engineNumber   String
+  plateNumber    String?
+  colour         String
+  ownerName      String
+  modeOfPurchase ModeOfPurchase
+  purchasePrice  Decimal?        @db.Decimal(15, 2)
+  notes          String?
+  status         VehicleStatus   @default(AVAILABLE)
+  branchId       String?
+  registeredById String
+  coverPhotoId   String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  registeredBy User            @relation("RegisteredBy", fields: [registeredById], references: [id])
+  photos       VehiclePhoto[]
+  history      VehicleHistory[]
+  sale         Sale?
+  outgoingSwap Swap?            @relation("OutgoingVehicle")
+  incomingSwap Swap?            @relation("IncomingVehicle")
+}
+
+model VehiclePhoto {
+  id           String   @id @default(cuid())
+  vehicleId    String
+  url          String
+  filename     String
+  isCover      Boolean  @default(false)
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+}
+
+model VehicleHistory {
+  id            String              @id @default(cuid())
+  vehicleId     String
+  event         VehicleHistoryEvent
+  description   String
+  metadata      Json?
+  performedById String
+  createdAt     DateTime            @default(now())
+
+  vehicle     Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  performedBy User    @relation(fields: [performedById], references: [id])
+}
+
+model Sale {
+  id             String     @id @default(cuid())
+  dateSold       DateTime
+  vehicleId      String     @unique
+  buyerName      String
+  buyerPhone     String
+  buyerAddress   String
+  witnessName    String
+  sellingPrice   Decimal    @db.Decimal(15, 2)
+  modeOfSale     ModeOfSale
+  notes          String?
+  isReversed     Boolean    @default(false)
+  reversalReason String?
+  reversedAt     DateTime?
+  reversedById   String?
+  registeredById String
+  customerId     String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  vehicle      Vehicle   @relation(fields: [vehicleId], references: [id])
+  registeredBy User      @relation("SaleRegisteredBy", fields: [registeredById], references: [id])
+  reversedBy   User?     @relation("SaleReversedBy", fields: [reversedById], references: [id])
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  receipt      Receipt?
+}
+
+model Swap {
+  id                String         @id @default(cuid())
+  dateOfSwap        DateTime
+  outgoingVehicleId String         @unique
+  incomingVehicleId String         @unique
+  cashDifference    Decimal?       @db.Decimal(15, 2)
+  cashDirection     CashDirection?
+  modeOfSwap        ModeOfSwap
+  witnessName       String
+  notes             String?
+  registeredById    String
+  customerId        String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  outgoingVehicle Vehicle   @relation("OutgoingVehicle", fields: [outgoingVehicleId], references: [id])
+  incomingVehicle Vehicle   @relation("IncomingVehicle", fields: [incomingVehicleId], references: [id])
+  registeredBy    User      @relation("SwapRegisteredBy", fields: [registeredById], references: [id])
+  customer        Customer? @relation(fields: [customerId], references: [id])
+  receipt         Receipt?
+}
+
+model Receipt {
+  id              String      @id @default(cuid())
+  receiptNumber   String      @unique
+  receiptYear     Int
+  receiptSequence Int
+  receiptDate     DateTime
+  type            ReceiptType
+  saleId          String?     @unique
+  swapId          String?     @unique
+  accessorySaleId String?     @unique
+  isVoided        Boolean     @default(false)
+  voidReason      String?
+  voidedAt        DateTime?
+  voidedById      String?
+  issuedById      String
+  createdAt       DateTime    @default(now())
+
+  sale          Sale?          @relation(fields: [saleId], references: [id])
+  swap          Swap?          @relation(fields: [swapId], references: [id])
+  accessorySale AccessorySale? @relation(fields: [accessorySaleId], references: [id])
+  issuedBy      User           @relation("IssuedBy", fields: [issuedById], references: [id])
+  voidedBy      User?          @relation("VoidedBy", fields: [voidedById], references: [id])
+
+  @@unique([receiptYear, receiptSequence])
+}
+
+model ReceiptSequence {
+  id              String @id @default(cuid())
+  year            Int    @unique
+  currentSequence Int    @default(0)
+}
+
+model AccessoryItem {
+  id                String            @id @default(cuid())
+  name              String
+  category          AccessoryCategory
+  description       String?
+  quantityInStock   Int               @default(0)
+  costPrice         Decimal?          @db.Decimal(15, 2)
+  sellingPrice      Decimal           @db.Decimal(15, 2)
+  lowStockThreshold Int               @default(2)
+  chassisNumber     String?
+  engineNumber      String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  photos    AccessoryPhoto[]
+  saleItems AccessorySaleItem[]
+}
+
+model AccessoryPhoto {
+  id              String        @id @default(cuid())
+  accessoryItemId String
+  url             String
+  filename        String
+  createdAt       DateTime      @default(now())
+
+  accessoryItem AccessoryItem @relation(fields: [accessoryItemId], references: [id], onDelete: Cascade)
+}
+
+model AccessorySale {
+  id             String      @id @default(cuid())
+  dateSold       DateTime
+  buyerName      String
+  buyerPhone     String?
+  paymentMode    PaymentMode
+  totalAmount    Decimal     @db.Decimal(15, 2)
+  registeredById String
+  customerId     String?
+  createdAt      DateTime    @default(now())
+
+  registeredBy User               @relation(fields: [registeredById], references: [id])
+  customer     Customer?          @relation(fields: [customerId], references: [id])
+  items        AccessorySaleItem[]
+  receipt      Receipt?
+}
+
+model AccessorySaleItem {
+  id              String  @id @default(cuid())
+  accessorySaleId String
+  accessoryItemId String
+  quantity        Int
+  unitPrice       Decimal @db.Decimal(15, 2)
+  subtotal        Decimal @db.Decimal(15, 2)
+
+  accessorySale AccessorySale @relation(fields: [accessorySaleId], references: [id], onDelete: Cascade)
+  accessoryItem AccessoryItem @relation(fields: [accessoryItemId], references: [id])
+}
+
+model Customer {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String
+  address   String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sales          Sale[]
+  swaps          Swap[]
+  accessorySales AccessorySale[]
+}
+
+model AuditLog {
+  id          String        @id @default(cuid())
+  timestamp   DateTime      @default(now())
+  userId      String
+  userRole    UserRole
+  category    AuditCategory
+  action      String
+  recordId    String?
+  recordType  String?
+  ipAddress   String
+  deviceInfo  String
+  beforeState Json?
+  afterState  Json?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([category])
+  @@index([timestamp])
+}
+
+model Notification {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  title             String
+  body              String
+  isRead            Boolean  @default(false)
+  relatedRecordId   String?
+  relatedRecordType String?
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+}
