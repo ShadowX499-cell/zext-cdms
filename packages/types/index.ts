@@ -1,5 +1,5 @@
-// Re-export generated API types once codegen has run
-// export * from './generated/api';
+// Generated from NestJS OpenAPI spec — run `npm run codegen` to update
+export * from './generated/api';
 
 // Shared manual types
 export type ApiError = {
