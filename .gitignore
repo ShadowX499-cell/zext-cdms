@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+dist/
+build/
+.turbo/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+apps/api/.env
+apps/web/.env.local
+
+# Prisma
+apps/api/prisma/migrations/.env
+
+# Uploads
+apps/api/uploads/
+
+# OpenAPI generated
+apps/api/openapi.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Superpowers brainstorm sessions (mockup files)
+.superpowers/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
