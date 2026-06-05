@@ -270,3 +270,134 @@ export const dashboardApi = {
   metrics: (token: string) =>
     apiRequest<DashboardMetrics>('/dashboard/metrics', { token }),
 };
+
+// ── Swaps API ─────────────────────────────────────────────────────────────────
+
+export interface Swap {
+  id: string;
+  dateOfSwap: string;
+  outgoingVehicleId: string;
+  incomingVehicleId: string;
+  modeOfSwap: string;
+  cashDifference?: string | null;
+  cashDirection?: string | null;
+  witnessName: string;
+  notes?: string | null;
+  createdAt: string;
+  outgoingVehicle?: { name: string; chassisNumber: string };
+  incomingVehicle?: { name: string; chassisNumber: string };
+  registeredBy?: { name: string };
+  receipt?: { receiptNumber: string } | null;
+}
+
+export const swapsApi = {
+  list: (token: string, page = 1, limit = 20) =>
+    apiRequest<PaginatedResponse<Swap>>(`/swaps?page=${page}&limit=${limit}`, { token }),
+
+  get: (token: string, id: string) =>
+    apiRequest<Swap>(`/swaps/${id}`, { token }),
+
+  create: (token: string, data: Record<string, unknown>) =>
+    apiRequest<{ swap: Swap; receipt: Receipt }>('/swaps', { method: 'POST', body: data, token }),
+};
+
+// ── Accessories API ───────────────────────────────────────────────────────────
+
+export interface AccessoryItem {
+  id: string;
+  name: string;
+  category: string;
+  description?: string | null;
+  quantityInStock: number;
+  sellingPrice: string;
+  costPrice?: string | null;
+  lowStockThreshold: number;
+  chassisNumber?: string | null;
+  engineNumber?: string | null;
+  createdAt: string;
+}
+
+export interface AccessorySale {
+  id: string;
+  dateSold: string;
+  buyerName: string;
+  buyerPhone?: string | null;
+  paymentMode: string;
+  totalAmount: string;
+  createdAt: string;
+  registeredBy?: { name: string };
+  receipt?: { receiptNumber: string } | null;
+  items?: Array<{ quantity: number; unitPrice: string; subtotal: string; accessoryItem: { name: string } }>;
+}
+
+export const accessoriesApi = {
+  listItems: (token: string, search?: string, page = 1) => {
+    const q = new URLSearchParams({ page: String(page) });
+    if (search) q.set('search', search);
+    return apiRequest<PaginatedResponse<AccessoryItem>>(`/accessories/items?${q}`, { token });
+  },
+
+  createItem: (token: string, data: Record<string, unknown>) =>
+    apiRequest<AccessoryItem>('/accessories/items', { method: 'POST', body: data, token }),
+
+  updateItem: (token: string, id: string, data: Record<string, unknown>) =>
+    apiRequest<AccessoryItem>(`/accessories/items/${id}`, { method: 'PATCH', body: data, token }),
+
+  listSales: (token: string, page = 1) =>
+    apiRequest<PaginatedResponse<AccessorySale>>(`/accessories/sales?page=${page}`, { token }),
+
+  createSale: (token: string, data: Record<string, unknown>) =>
+    apiRequest<{ accessorySale: AccessorySale; receipt: Receipt }>('/accessories/sales', { method: 'POST', body: data, token }),
+};
+
+// ── Revenue API ───────────────────────────────────────────────────────────────
+
+export interface RevenueSummary {
+  totalRevenue: string;
+  totalSalesCount: number;
+  revenueThisMonth: string;
+  salesCountThisMonth: number;
+  revenueThisYear: string;
+  salesCountThisYear: number;
+  byCategory: Record<string, number>;
+  monthlyTrend: Array<{ month: string; revenue: number; count: number }>;
+}
+
+export const revenueApi = {
+  summary: (token: string, from?: string, to?: string) => {
+    const q = new URLSearchParams();
+    if (from) q.set('from', from);
+    if (to) q.set('to', to);
+    return apiRequest<RevenueSummary>(`/revenue/summary?${q}`, { token });
+  },
+
+  topSales: (token: string, limit = 10) =>
+    apiRequest<Array<{ id: string; dateSold: string; sellingPrice: string; buyerName: string; modeOfSale: string; vehicle: { name: string; category: string }; receipt: { receiptNumber: string } | null }>>(`/revenue/top-sales?limit=${limit}`, { token }),
+};
+
+// ── Notifications API ─────────────────────────────────────────────────────────
+
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  isRead: boolean;
+  createdAt: string;
+  relatedRecordId?: string | null;
+  relatedRecordType?: string | null;
+}
+
+export const notificationsApi = {
+  list: (token: string, page = 1) =>
+    apiRequest<PaginatedResponse<Notification> & { unreadCount: number }>(`/notifications?page=${page}`, { token }),
+
+  unreadCount: (token: string) =>
+    apiRequest<{ unreadCount: number }>('/notifications/unread-count', { token }),
+
+  markRead: (token: string, id: string) =>
+    apiRequest<Notification>(`/notifications/${id}/read`, { method: 'PATCH', token }),
+
+  markAllRead: (token: string) =>
+    apiRequest<{ message: string }>('/notifications/mark-all-read', { method: 'PATCH', token }),
+};

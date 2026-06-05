@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { Wordmark } from '@/components/layout/Wordmark';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 import { authApi } from '@/lib/api-client';
 
 export default function DashboardLayout({
@@ -84,11 +85,14 @@ export default function DashboardLayout({
           <Wordmark size="sm" />
         </div>
 
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           <NavItem href="/" label="Dashboard" icon="⊞" active={pathname === '/'} />
           <NavItem href="/vehicles" label="Inventory" icon="🚗" active={pathname.startsWith('/vehicles')} />
           <NavItem href="/sales" label="Sales" icon="💰" active={pathname.startsWith('/sales')} />
+          <NavItem href="/swaps" label="Swaps" icon="🔁" active={pathname.startsWith('/swaps')} />
           <NavItem href="/receipts" label="Receipts" icon="🧾" active={pathname.startsWith('/receipts')} />
+          <NavItem href="/accessories" label="Accessories" icon="🛠" active={pathname.startsWith('/accessories')} />
+          <NavItem href="/customers" label="Customers" icon="👥" active={pathname.startsWith('/customers')} />
           {user.role === 'SUPER_ADMIN' && (
             <NavItem href="/revenue" label="Revenue" icon="📈" active={pathname.startsWith('/revenue')} />
           )}
@@ -121,7 +125,19 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      {/* Main area with topbar */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header style={{ height: 52, background: '#0d0d0d', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '20px', flexShrink: 0, gap: '12px' }}>
+          <NotificationBell />
+          <button
+            onClick={() => router.push('/sales/register')}
+            style={{ background: 'linear-gradient(135deg,#ef4444,#f97316)', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+          >
+            + New Record
+          </button>
+        </header>
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
     </div>
   );
 }
