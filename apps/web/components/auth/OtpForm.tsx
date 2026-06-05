@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi, ApiError } from '@/lib/api-client';
 import { useAuthStore } from '@/stores/auth.store';
@@ -14,48 +14,48 @@ export function OtpForm() {
   }));
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     if (!pendingUserId) router.replace('/login');
   }, [pendingUserId, router]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!pendingUserId) return;
     setError(null);
-
-    startTransition(async () => {
-      try {
-        const res = await authApi.verifyOtp(pendingUserId, otp);
-        setUser(
-          {
-            id: res.user.id,
-            name: res.user.name,
-            email: res.user.email,
-            role: res.user.role as 'SUPER_ADMIN' | 'SECRETARY',
-          },
-          res.accessToken,
+    setIsPending(true);
+    try {
+      const res = await authApi.verifyOtp(pendingUserId, otp);
+      setUser(
+        {
+          id: res.user.id,
+          name: res.user.name,
+          email: res.user.email,
+          role: res.user.role as 'SUPER_ADMIN' | 'SECRETARY',
+        },
+        res.accessToken,
+      );
+      // Lightweight cookie for SSR middleware auth check
+      document.cookie = 'zext-auth-check=1; path=/; max-age=' + (30 * 60) + '; SameSite=Strict';
+      startSessionTimer(
+        () => {},
+        () => router.replace('/login'),
+      );
+      router.replace('/');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(
+          err.status === 401
+            ? err.message
+            : 'Something went wrong. Please try again.',
         );
-        // Lightweight cookie for SSR middleware auth check
-        document.cookie = 'zext-auth-check=1; path=/; max-age=' + (30 * 60) + '; SameSite=Strict';
-        startSessionTimer(
-          () => {},
-          () => router.replace('/login'),
-        );
-        router.replace('/');
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setError(
-            err.status === 401
-              ? err.message
-              : 'Something went wrong. Please try again.',
-          );
-        } else {
-          setError('Cannot connect to server. Check your network.');
-        }
+      } else {
+        setError('Cannot connect to server. Check your network.');
       }
-    });
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi, ApiError } from '@/lib/api-client';
 import { useAuthStore } from '@/stores/auth.store';
@@ -11,30 +11,31 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    startTransition(async () => {
-      try {
-        const res = await authApi.login(email, password);
-        setPendingUserId(res.userId);
-        router.push('/verify-otp');
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setError(
-            err.status === 401
-              ? 'Invalid email or password'
-              : err.status === 403
-              ? err.message
-              : 'Something went wrong. Please try again.',
-          );
-        } else {
-          setError('Cannot connect to server. Check your network.');
-        }
+    setIsPending(true);
+    try {
+      const res = await authApi.login(email, password);
+      setPendingUserId(res.userId);
+      router.push('/verify-otp');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(
+          err.status === 401
+            ? 'Invalid email or password'
+            : err.status === 403
+            ? err.message
+            : 'Something went wrong. Please try again.',
+        );
+      } else {
+        setError('Cannot connect to server. Check your network.');
       }
-    });
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
