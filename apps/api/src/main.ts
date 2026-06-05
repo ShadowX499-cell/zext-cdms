@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -20,6 +21,8 @@ async function bootstrap() {
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
     credentials: true,
   });
+
+  app.use(cookieParser());
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('ZEXT CDMS API')
