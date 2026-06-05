@@ -71,3 +71,202 @@ export const authApi = {
       token,
     }),
 };
+
+// ── Shared types ──────────────────────────────────────────────────────────────
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface Vehicle {
+  id: string;
+  name: string;
+  category: string;
+  chassisNumber: string;
+  engineNumber: string;
+  plateNumber: string | null;
+  colour: string;
+  ownerName: string;
+  modeOfPurchase: string;
+  purchasePrice?: string | null;
+  status: string;
+  dateBought: string;
+  notes: string | null;
+  registeredById: string;
+  createdAt: string;
+  updatedAt: string;
+  photos?: { id: string; url: string; isCover: boolean }[];
+  registeredBy?: { name: string };
+  history?: VehicleHistoryEntry[];
+  sale?: { id: string; dateSold: string; buyerName: string; sellingPrice: string; modeOfSale: string; isReversed: boolean } | null;
+}
+
+export interface VehicleHistoryEntry {
+  id: string;
+  event: string;
+  description: string;
+  createdAt: string;
+  performedBy: { name: string };
+}
+
+export interface Sale {
+  id: string;
+  dateSold: string;
+  vehicleId: string;
+  buyerName: string;
+  buyerPhone: string;
+  buyerAddress: string;
+  witnessName: string;
+  sellingPrice: string;
+  modeOfSale: string;
+  isReversed: boolean;
+  reversalReason?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  vehicle?: { name: string; chassisNumber: string; category: string };
+  registeredBy?: { name: string };
+  receipt?: { id: string; receiptNumber: string; type: string; isVoided: boolean } | null;
+}
+
+export interface Receipt {
+  id: string;
+  receiptNumber: string;
+  receiptYear: number;
+  receiptSequence: number;
+  receiptDate: string;
+  type: string;
+  isVoided: boolean;
+  voidReason?: string | null;
+  voidedAt?: string | null;
+  saleId?: string | null;
+  createdAt: string;
+  issuedBy?: { name: string };
+  sale?: {
+    buyerName: string;
+    sellingPrice: string;
+    vehicle?: { name: string; chassisNumber: string } | null;
+  } | null;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  address?: string | null;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface DashboardMetrics {
+  inventoryAvailable: number;
+  inventoryTotal: number;
+  soldThisMonth: number;
+  registeredThisMonth: number;
+  revenueThisMonth: string | null;
+  revenueThisYear: string | null;
+  totalRevenue: string | null;
+  recentVehicles: Array<{ id: string; name: string; category: string; status: string; colour: string; createdAt: string; photos: Array<{ url: string }> }>;
+  recentSales: Array<{ id: string; dateSold: string; buyerName: string; sellingPrice: string; modeOfSale: string; vehicle: { name: string; category: string }; receipt: { receiptNumber: string } | null }>;
+}
+
+// ── Vehicles API ──────────────────────────────────────────────────────────────
+
+export const vehiclesApi = {
+  list: (token: string, params?: { status?: string; category?: string; search?: string; page?: number; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.status) q.set('status', params.status);
+    if (params?.category) q.set('category', params.category);
+    if (params?.search) q.set('search', params.search);
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    return apiRequest<PaginatedResponse<Vehicle>>(`/vehicles?${q}`, { token });
+  },
+
+  get: (token: string, id: string) =>
+    apiRequest<Vehicle>(`/vehicles/${id}`, { token }),
+
+  create: (token: string, data: Record<string, unknown>) =>
+    apiRequest<Vehicle>('/vehicles', { method: 'POST', body: data, token }),
+
+  update: (token: string, id: string, data: Record<string, unknown>) =>
+    apiRequest<Vehicle>(`/vehicles/${id}`, { method: 'PATCH', body: data, token }),
+};
+
+// ── Sales API ─────────────────────────────────────────────────────────────────
+
+export const salesApi = {
+  list: (token: string, params?: { reversed?: boolean; page?: number; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.reversed !== undefined) q.set('reversed', String(params.reversed));
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    return apiRequest<PaginatedResponse<Sale>>(`/sales?${q}`, { token });
+  },
+
+  get: (token: string, id: string) =>
+    apiRequest<Sale>(`/sales/${id}`, { token }),
+
+  create: (token: string, data: Record<string, unknown>) =>
+    apiRequest<{ sale: Sale; receipt: Receipt }>('/sales', { method: 'POST', body: data, token }),
+
+  reverse: (token: string, id: string, reversalReason: string) =>
+    apiRequest<{ message: string }>(`/sales/${id}/reverse`, { method: 'PATCH', body: { reversalReason }, token }),
+};
+
+// ── Receipts API ──────────────────────────────────────────────────────────────
+
+export const receiptsApi = {
+  list: (token: string, params?: { type?: string; voided?: boolean; page?: number; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.type) q.set('type', params.type);
+    if (params?.voided !== undefined) q.set('voided', String(params.voided));
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    return apiRequest<PaginatedResponse<Receipt>>(`/receipts?${q}`, { token });
+  },
+
+  get: (token: string, id: string) =>
+    apiRequest<Receipt>(`/receipts/${id}`, { token }),
+
+  void: (token: string, id: string, reason: string) =>
+    apiRequest<Receipt>(`/receipts/${id}/void`, { method: 'PATCH', body: { reason }, token }),
+
+  downloadPdf: async (token: string, id: string, receiptNumber: string) => {
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
+    const res = await fetch(`${BASE_URL}/receipts/${id}/pdf`, {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Failed to download PDF');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${receiptNumber}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+};
+
+// ── Customers API ─────────────────────────────────────────────────────────────
+
+export const customersApi = {
+  list: (token: string, search?: string, page = 1) => {
+    const q = new URLSearchParams({ page: String(page) });
+    if (search) q.set('search', search);
+    return apiRequest<PaginatedResponse<Customer>>(`/customers?${q}`, { token });
+  },
+
+  create: (token: string, data: { name: string; phone: string; address?: string }) =>
+    apiRequest<Customer>('/customers', { method: 'POST', body: data, token }),
+};
+
+// ── Dashboard API ─────────────────────────────────────────────────────────────
+
+export const dashboardApi = {
+  metrics: (token: string) =>
+    apiRequest<DashboardMetrics>('/dashboard/metrics', { token }),
+};

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { Wordmark } from '@/components/layout/Wordmark';
 import { authApi } from '@/lib/api-client';
@@ -12,6 +12,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
   const clearSession = useAuthStore((s) => s.clearSession);
@@ -84,14 +85,14 @@ export default function DashboardLayout({
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          <NavItem href="/" label="Dashboard" icon="⊞" active />
-          <NavItem href="/vehicles" label="Inventory" icon="🚗" />
-          <NavItem href="/sales" label="Sales" icon="💰" />
-          <NavItem href="/receipts" label="Receipts" icon="🧾" />
+          <NavItem href="/" label="Dashboard" icon="⊞" active={pathname === '/'} />
+          <NavItem href="/vehicles" label="Inventory" icon="🚗" active={pathname.startsWith('/vehicles')} />
+          <NavItem href="/sales" label="Sales" icon="💰" active={pathname.startsWith('/sales')} />
+          <NavItem href="/receipts" label="Receipts" icon="🧾" active={pathname.startsWith('/receipts')} />
           {user.role === 'SUPER_ADMIN' && (
-            <NavItem href="/revenue" label="Revenue" icon="📈" />
+            <NavItem href="/revenue" label="Revenue" icon="📈" active={pathname.startsWith('/revenue')} />
           )}
-          <NavItem href="/audit" label="Audit Log" icon="🔍" />
+          <NavItem href="/audit" label="Audit Log" icon="🔍" active={pathname.startsWith('/audit')} />
         </nav>
 
         <div
