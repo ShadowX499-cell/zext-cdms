@@ -54,9 +54,6 @@ export const useAuthStore = create<AuthState>()(
         const { sessionTimer, warnTimer } = get();
         if (sessionTimer) clearTimeout(sessionTimer);
         if (warnTimer) clearTimeout(warnTimer);
-        if (typeof document !== 'undefined') {
-          document.cookie = 'zext-auth-check=; path=/; max-age=0; SameSite=Strict';
-        }
         set({
           user: null,
           accessToken: null,

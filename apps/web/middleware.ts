@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/verify-otp'];
-
+// Auth protection is handled client-side by DashboardLayout (Zustand store).
+// Middleware only redirects authenticated users away from auth pages to avoid
+// showing the login form when already logged in.
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
-  }
-
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/verify-otp');
   const authCookie = req.cookies.get('zext-auth-check');
-  if (!authCookie?.value) {
-    const loginUrl = new URL('/login', req.url);
-    loginUrl.searchParams.set('from', pathname);
-    return NextResponse.redirect(loginUrl);
+
+  // Already authenticated → skip login/otp pages
+  if (isAuthPage && authCookie?.value) {
+    return NextResponse.redirect(new URL('/', req.url));
   }
 
   return NextResponse.next();

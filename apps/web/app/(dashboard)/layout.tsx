@@ -21,10 +21,18 @@ export default function DashboardLayout({
   const dismissWarning = useAuthStore((s) => s.dismissWarning);
   const startSessionTimer = useAuthStore((s) => s.startSessionTimer);
 
-  // Wait for Zustand persist to rehydrate from sessionStorage before
-  // checking auth — avoids premature redirect on first render (React 19).
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => { setHydrated(true); }, []);
+  // Zustand persist rehydrates from sessionStorage asynchronously in React 19.
+  // We must wait one tick before checking auth to avoid a premature redirect
+  // on the first render where the store shows the initial (null) values.
+  const [hydrated, setHydrated] = useState(
+    () => useAuthStore.persist.hasHydrated(),
+  );
+
+  useEffect(() => {
+    if (hydrated) return;
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+    return unsub;
+  }, [hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;

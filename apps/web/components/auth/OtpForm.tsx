@@ -34,8 +34,6 @@ export function OtpForm() {
         },
         res.accessToken,
       );
-      // Lightweight cookie for SSR middleware auth check
-      document.cookie = 'zext-auth-check=1; path=/; max-age=' + (30 * 60) + '; SameSite=Strict';
       startSessionTimer(
         () => {},
         () => router.replace('/login'),
