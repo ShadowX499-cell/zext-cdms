@@ -10,6 +10,8 @@ import {
 } from '@prisma/client';
 import { generateNgUsedHtml } from './templates/ng-used.template';
 import { generateTokunboHtml } from './templates/tokunbo.template';
+import { generateSwapHtml } from './templates/swap.template';
+import { generateAccessoriesHtml } from './templates/accessories.template';
 
 @Injectable()
 export class ReceiptsService {
@@ -100,8 +102,18 @@ export class ReceiptsService {
         issuedBy: { select: { name: true } },
         voidedBy: { select: { name: true } },
         sale: {
+          include: { vehicle: true, customer: true },
+        },
+        swap: {
           include: {
-            vehicle: true,
+            outgoingVehicle: true,
+            incomingVehicle: true,
+            customer: true,
+          },
+        },
+        accessorySale: {
+          include: {
+            items: { include: { accessoryItem: { select: { name: true } } } },
             customer: true,
           },
         },
@@ -149,22 +161,43 @@ export class ReceiptsService {
   async generatePdf(id: string): Promise<Buffer> {
     const receipt = await this.findOne(id);
 
-    // Convert Decimal fields to string for templates
     const templateData = {
       ...receipt,
       sale: receipt.sale
+        ? { ...receipt.sale, sellingPrice: receipt.sale.sellingPrice?.toString() ?? '0' }
+        : null,
+      swap: (receipt as any).swap
         ? {
-            ...receipt.sale,
-            sellingPrice: receipt.sale.sellingPrice?.toString() ?? '0',
+            ...(receipt as any).swap,
+            cashDifference: (receipt as any).swap.cashDifference?.toString() ?? null,
+          }
+        : null,
+      accessorySale: (receipt as any).accessorySale
+        ? {
+            ...(receipt as any).accessorySale,
+            totalAmount: (receipt as any).accessorySale.totalAmount?.toString() ?? '0',
+            items: ((receipt as any).accessorySale.items ?? []).map((item: any) => ({
+              ...item,
+              unitPrice: item.unitPrice?.toString() ?? '0',
+              subtotal: item.subtotal?.toString() ?? '0',
+            })),
           }
         : null,
     };
 
     let html: string;
-    if (receipt.type === ReceiptType.TOKUNBO_CAR) {
-      html = generateTokunboHtml(templateData as unknown as Parameters<typeof generateTokunboHtml>[0]);
-    } else {
-      html = generateNgUsedHtml(templateData as unknown as Parameters<typeof generateNgUsedHtml>[0]);
+    switch (receipt.type) {
+      case ReceiptType.TOKUNBO_CAR:
+        html = generateTokunboHtml(templateData as unknown as Parameters<typeof generateTokunboHtml>[0]);
+        break;
+      case ReceiptType.SWAP_DEAL:
+        html = generateSwapHtml(templateData as unknown as Parameters<typeof generateSwapHtml>[0]);
+        break;
+      case ReceiptType.ACCESSORIES_BIKE:
+        html = generateAccessoriesHtml(templateData as unknown as Parameters<typeof generateAccessoriesHtml>[0]);
+        break;
+      default:
+        html = generateNgUsedHtml(templateData as unknown as Parameters<typeof generateNgUsedHtml>[0]);
     }
 
     // Lazy import to avoid startup cost
