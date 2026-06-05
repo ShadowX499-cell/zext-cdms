@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { Wordmark } from '@/components/layout/Wordmark';
@@ -21,11 +21,17 @@ export default function DashboardLayout({
   const dismissWarning = useAuthStore((s) => s.dismissWarning);
   const startSessionTimer = useAuthStore((s) => s.startSessionTimer);
 
+  // Wait for Zustand persist to rehydrate from sessionStorage before
+  // checking auth — avoids premature redirect on first render (React 19).
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => { setHydrated(true); }, []);
+
   useEffect(() => {
+    if (!hydrated) return;
     if (!user || !accessToken) {
       router.replace('/login');
     }
-  }, [user, accessToken, router]);
+  }, [hydrated, user, accessToken, router]);
 
   useEffect(() => {
     if (user && accessToken) {
@@ -48,7 +54,7 @@ export default function DashboardLayout({
     router.replace('/login');
   }
 
-  if (!user) return null;
+  if (!hydrated || !user) return null;
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-bg-base)' }}>
