@@ -97,6 +97,9 @@ export default function DashboardLayout({
             <NavItem href="/revenue" label="Revenue" icon="📈" active={pathname.startsWith('/revenue')} />
           )}
           <NavItem href="/audit" label="Audit Log" icon="🔍" active={pathname.startsWith('/audit')} />
+          {user.role === 'SUPER_ADMIN' && (
+            <NavItem href="/settings" label="Settings" icon="⚙" active={pathname.startsWith('/settings')} />
+          )}
         </nav>
 
         <div

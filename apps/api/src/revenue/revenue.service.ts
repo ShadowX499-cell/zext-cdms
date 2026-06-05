@@ -118,4 +118,86 @@ export class RevenueService {
       },
     });
   }
+
+  private async getSalesRows(filters: RevenueFilters) {
+    const where = {
+      isReversed: false,
+      receipt: { isVoided: false },
+      ...(filters.fromDate || filters.toDate
+        ? { dateSold: {
+            ...(filters.fromDate ? { gte: filters.fromDate } : {}),
+            ...(filters.toDate ? { lte: filters.toDate } : {}),
+          } }
+        : {}),
+    };
+    return this.prisma.sale.findMany({
+      where,
+      orderBy: { dateSold: 'desc' },
+      include: {
+        vehicle: { select: { name: true, category: true, chassisNumber: true } },
+        receipt: { select: { receiptNumber: true } },
+      },
+    });
+  }
+
+  async exportCsv(filters: RevenueFilters = {}): Promise<string> {
+    const rows = await this.getSalesRows(filters);
+    const header = ['Receipt No', 'Date', 'Vehicle', 'Category', 'Chassis', 'Buyer', 'Mode', 'Amount (NGN)'].join(',');
+    const lines = rows.map((r) =>
+      [
+        r.receipt?.receiptNumber ?? '',
+        r.dateSold.toISOString().split('T')[0],
+        `"${r.vehicle?.name ?? ''}"`,
+        r.vehicle?.category ?? '',
+        r.vehicle?.chassisNumber ?? '',
+        `"${r.buyerName}"`,
+        r.modeOfSale,
+        r.sellingPrice.toString(),
+      ].join(','),
+    );
+    return [header, ...lines].join('\n');
+  }
+
+  async exportExcel(filters: RevenueFilters = {}): Promise<Buffer> {
+    const rows = await this.getSalesRows(filters);
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
+    workbook.creator = 'ZEXT CDMS';
+    const sheet = workbook.addWorksheet('Revenue');
+
+    sheet.columns = [
+      { header: 'Receipt No', key: 'receipt', width: 18 },
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Vehicle', key: 'vehicle', width: 28 },
+      { header: 'Category', key: 'category', width: 14 },
+      { header: 'Chassis No', key: 'chassis', width: 20 },
+      { header: 'Buyer', key: 'buyer', width: 22 },
+      { header: 'Mode of Sale', key: 'mode', width: 16 },
+      { header: 'Amount (NGN)', key: 'amount', width: 16 },
+    ];
+
+    // Style header row
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEF4444' } };
+
+    for (const r of rows) {
+      sheet.addRow({
+        receipt: r.receipt?.receiptNumber ?? '',
+        date: r.dateSold.toISOString().split('T')[0],
+        vehicle: r.vehicle?.name ?? '',
+        category: (r.vehicle?.category ?? '').replace(/_/g, ' '),
+        chassis: r.vehicle?.chassisNumber ?? '',
+        buyer: r.buyerName,
+        mode: r.modeOfSale.replace(/_/g, ' '),
+        amount: parseFloat(r.sellingPrice.toString()),
+      });
+    }
+
+    // Number format for Amount column
+    sheet.getColumn('amount').numFmt = '#,##0.00';
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
+  }
 }

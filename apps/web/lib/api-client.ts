@@ -142,12 +142,40 @@ export interface Receipt {
   voidReason?: string | null;
   voidedAt?: string | null;
   saleId?: string | null;
+  swapId?: string | null;
+  accessorySaleId?: string | null;
   createdAt: string;
   issuedBy?: { name: string };
+  voidedBy?: { name: string } | null;
   sale?: {
     buyerName: string;
+    buyerPhone?: string;
+    buyerAddress?: string;
+    witnessName?: string;
     sellingPrice: string;
-    vehicle?: { name: string; chassisNumber: string } | null;
+    modeOfSale?: string;
+    dateSold?: string;
+    vehicle?: { name: string; chassisNumber: string; engineNumber?: string; colour?: string; plateNumber?: string | null } | null;
+    customer?: { name: string; phone: string } | null;
+  } | null;
+  swap?: {
+    dateOfSwap: string;
+    modeOfSwap: string;
+    cashDifference?: string | null;
+    cashDirection?: string | null;
+    witnessName: string;
+    notes?: string | null;
+    outgoingVehicle?: { name: string; chassisNumber: string; engineNumber?: string; colour?: string; plateNumber?: string | null };
+    incomingVehicle?: { name: string; chassisNumber: string; engineNumber?: string; colour?: string; plateNumber?: string | null };
+    customer?: { name: string; phone: string } | null;
+  } | null;
+  accessorySale?: {
+    dateSold: string;
+    buyerName: string;
+    buyerPhone?: string | null;
+    paymentMode: string;
+    totalAmount: string;
+    items?: Array<{ quantity: number; unitPrice: string; subtotal: string; accessoryItem: { name: string } }>;
   } | null;
 }
 

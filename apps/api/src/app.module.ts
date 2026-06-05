@@ -18,6 +18,7 @@ import { SwapsModule } from './swaps/swaps.module';
 import { AccessoriesModule } from './accessories/accessories.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { RevenueModule } from './revenue/revenue.module';
+import { SettingsModule } from './settings/settings.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthController } from './health/health.controller';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -45,6 +46,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     AccessoriesModule,
     NotificationsModule,
     RevenueModule,
+    SettingsModule,
     DashboardModule,
   ],
   controllers: [HealthController],

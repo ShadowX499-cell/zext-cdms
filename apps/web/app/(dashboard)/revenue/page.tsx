@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore, isAdmin } from '@/stores/auth.store';
-import { revenueApi, RevenueSummary } from '@/lib/api-client';
+import { revenueApi, RevenueSummary, apiRequest } from '@/lib/api-client';
 import { formatNaira } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -22,6 +22,7 @@ export default function RevenuePage() {
   const [error, setError] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [exporting, setExporting] = useState<'csv' | 'excel' | null>(null);
 
   useEffect(() => {
     if (!admin) { router.replace('/'); return; }
@@ -66,6 +67,32 @@ export default function RevenuePage() {
           {(from || to) && (
             <button onClick={() => { setFrom(''); setTo(''); }} style={{ marginTop: '16px', fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>Clear</button>
           )}
+        </div>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+          {(['csv', 'excel'] as const).map((fmt) => (
+            <button key={fmt} disabled={!!exporting}
+              onClick={async () => {
+                setExporting(fmt);
+                try {
+                  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
+                  const q = new URLSearchParams();
+                  if (from) q.set('from', from);
+                  if (to) q.set('to', to);
+                  const res = await fetch(`${BASE_URL}/revenue/export/${fmt}?${q}`, { headers: { Authorization: `Bearer ${token}` }, credentials: 'include' });
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `zext-revenue.${fmt === 'excel' ? 'xlsx' : 'csv'}`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch { setError('Export failed'); }
+                finally { setExporting(null); }
+              }}
+              style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: '1px solid var(--color-border)', background: 'var(--color-bg-elevated)', color: 'var(--color-text-secondary)', cursor: !!exporting ? 'not-allowed' : 'pointer' }}>
+              {exporting === fmt ? 'Exporting…' : `↓ ${fmt.toUpperCase()}`}
+            </button>
+          ))}
         </div>
       </div>
 

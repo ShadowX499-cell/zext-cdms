@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { accessoriesApi, AccessoryItem } from '@/lib/api-client';
 import { Pagination } from '@/components/ui/Pagination';
@@ -9,6 +10,7 @@ import { formatNaira } from '@/lib/utils';
 const CATEGORIES = ['', 'CAR_ACCESSORY', 'SCOOTER_BIKE'];
 
 export default function AccessoriesPage() {
+  const router = useRouter();
   const token = useAuthStore((s) => s.accessToken)!;
 
   const [tab, setTab] = useState<'items' | 'add-item'>('items');
@@ -72,6 +74,7 @@ export default function AccessoriesPage() {
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{total} items in inventory</p>
         </div>
         <div className="flex gap-3">
+          <button onClick={() => router.push('/accessories/sales/register')} style={{ background: 'var(--color-bg-elevated)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '9px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>+ Record Sale</button>
           <button onClick={() => setTab('add-item')} style={{ background: tab === 'add-item' ? 'linear-gradient(135deg,#ef4444,#f97316)' : 'var(--color-bg-elevated)', color: '#fff', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '9px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>+ Add Item</button>
         </div>
       </div>
