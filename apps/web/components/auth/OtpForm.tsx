@@ -7,11 +7,9 @@ import { useAuthStore } from '@/stores/auth.store';
 
 export function OtpForm() {
   const router = useRouter();
-  const { pendingUserId, setUser, startSessionTimer } = useAuthStore((s) => ({
-    pendingUserId: s.pendingUserId,
-    setUser: s.setUser,
-    startSessionTimer: s.startSessionTimer,
-  }));
+  const pendingUserId = useAuthStore((s) => s.pendingUserId);
+  const setUser = useAuthStore((s) => s.setUser);
+  const startSessionTimer = useAuthStore((s) => s.startSessionTimer);
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
