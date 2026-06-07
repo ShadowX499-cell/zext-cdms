@@ -68,7 +68,7 @@ export default function DashboardLayout({
   if (!hydrated || !user) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-bg-base)' }}>
+    <div className={`flex h-screen overflow-hidden ${showSessionWarning ? 'pt-[52px]' : ''}`} style={{ background: 'var(--color-bg-base)' }}>
       {/* Session timeout warning banner */}
       {showSessionWarning && (
         <div

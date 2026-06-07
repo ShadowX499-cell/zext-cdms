@@ -83,7 +83,7 @@ export default function SwapsPage() {
                 </td>
                 <td style={{ padding: '12px 16px' }}>
                   {s.receipt && (
-                    <button onClick={() => router.push(`/receipts/${s.id}`)} style={{ fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                    <button onClick={() => s.receipt && router.push(`/receipts/${s.receipt!.id}`)} style={{ fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                       Receipt →
                     </button>
                   )}
@@ -108,7 +108,7 @@ export default function SwapsPage() {
               padding: '12px 14px',
               cursor: s.receipt ? 'pointer' : 'default',
             }}
-            onClick={() => s.receipt && router.push(`/receipts/${s.id}`)}
+            onClick={() => s.receipt && router.push(`/receipts/${s.receipt!.id}`)}
             onMouseEnter={(e) => { if (s.receipt) e.currentTarget.style.background = 'var(--color-bg-elevated)'; }}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-bg-surface)')}
           >

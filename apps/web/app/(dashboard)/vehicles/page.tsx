@@ -79,7 +79,7 @@ export default function VehiclesPage() {
       {/* Filters */}
       <div className="flex gap-3 mb-5 flex-wrap">
         <input
-          style={{ ...inputStyle, width: '100%' }}
+          style={{ ...inputStyle, flex: 1, minWidth: '180px' }}
           placeholder="Search name, chassis, plate..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
