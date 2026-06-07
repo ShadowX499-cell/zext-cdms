@@ -53,8 +53,8 @@ export default function VehiclesPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Inventory</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{total} vehicles registered</p>
@@ -79,7 +79,7 @@ export default function VehiclesPage() {
       {/* Filters */}
       <div className="flex gap-3 mb-5 flex-wrap">
         <input
-          style={{ ...inputStyle, minWidth: '220px' }}
+          style={{ ...inputStyle, width: '100%' }}
           placeholder="Search name, chassis, plate..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -95,7 +95,7 @@ export default function VehiclesPage() {
       {error && <p style={{ color: '#ef4444', marginBottom: '12px', fontSize: '13px' }}>{error}</p>}
 
       {/* Table */}
-      <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div className="hidden md:block" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
@@ -147,6 +147,46 @@ export default function VehiclesPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile card list — visible below md */}
+      <div className="block md:hidden space-y-2">
+        {loading ? (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>Loading…</p>
+        ) : vehicles.length === 0 ? (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>No vehicles found</p>
+        ) : vehicles.map((v) => (
+          <div
+            key={v.id}
+            onClick={() => router.push(`/vehicles/${v.id}`)}
+            style={{
+              background: 'var(--color-bg-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '10px',
+              padding: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-bg-elevated)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-bg-surface)')}
+          >
+            {v.photos?.[0] ? (
+              <img src={v.photos[0].url} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--color-border)', flexShrink: 0 }} />
+            ) : (
+              <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--color-bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🚗</div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</p>
+              <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{v.chassisNumber} · {v.colour}</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
+              <StatusBadge status={v.status} />
+              <StatusBadge status={v.category} />
+            </div>
+          </div>
+        ))}
       </div>
 
       <Pagination page={page} limit={20} total={total} onPage={setPage} />
