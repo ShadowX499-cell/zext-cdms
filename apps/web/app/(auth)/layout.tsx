@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Wordmark size="lg" />
       </div>
       <div
-        className="w-full max-w-md rounded-xl p-8"
+        className="w-full max-w-md rounded-xl p-6 sm:p-8"
         style={{
           background: 'var(--color-bg-surface)',
           border: '1px solid var(--color-border)',
