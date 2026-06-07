@@ -46,7 +46,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Dashboard</h1>
         <p style={{ color: 'var(--color-text-muted)' }} className="text-sm mt-1">
@@ -59,7 +59,7 @@ export default function DashboardPage() {
       ) : metrics ? (
         <>
           {/* Metric cards */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {metricCard('Available Inventory', metrics.inventoryAvailable, `of ${metrics.inventoryTotal} total`, '/vehicles?status=AVAILABLE', true)}
             {metricCard('Sold This Month', metrics.soldThisMonth, 'confirmed sales', '/sales', true)}
             {metricCard('Registered This Month', metrics.registeredThisMonth, 'new vehicles', '/vehicles', false)}
@@ -69,14 +69,14 @@ export default function DashboardPage() {
           </div>
 
           {admin && metrics.revenueThisYear != null && (
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {metricCard('Revenue This Year', formatNaira(parseFloat(metrics.revenueThisYear)), 'from all confirmed sales')}
               {metricCard('Total Revenue (All Time)', formatNaira(parseFloat(metrics.totalRevenue ?? '0')), 'cumulative confirmed sales')}
             </div>
           )}
 
           {/* Recent tables */}
-          <div className="grid gap-6" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Recent vehicles */}
             <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
               <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
