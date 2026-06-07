@@ -83,7 +83,7 @@ export default function RegisterVehiclePage() {
   );
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-4 md:p-6 max-w-2xl">
       <div className="mb-6">
         <button onClick={() => router.back()} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', marginBottom: '8px' }}>← Back</button>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Register Vehicle</h1>
@@ -99,15 +99,15 @@ export default function RegisterVehiclePage() {
         <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Vehicle Details</h2>
           {field('Make / Model *', 'name', { required: true, placeholder: 'e.g. Toyota Camry 2019' })}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {select('Category *', 'category', CATEGORIES)}
             {field('Date Bought *', 'dateBought', { type: 'date', required: true })}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {field('Chassis Number *', 'chassisNumber', { required: true, placeholder: 'VIN / Chassis No', style: { ...inputStyle, fontFamily: 'monospace' } })}
             {field('Engine Number *', 'engineNumber', { required: true, placeholder: 'Engine No', style: { ...inputStyle, fontFamily: 'monospace' } })}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {field('Plate Number', 'plateNumber', { placeholder: 'e.g. ABC-123-XY (optional)' })}
             {field('Colour *', 'colour', { required: true, placeholder: 'e.g. Silver' })}
           </div>
@@ -116,7 +116,7 @@ export default function RegisterVehiclePage() {
         <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Purchase Info</h2>
           {field('Previous Owner Name *', 'ownerName', { required: true, placeholder: 'Seller / dealer name' })}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {select('Mode of Purchase *', 'modeOfPurchase', MODES)}
             {admin && field('Purchase Price (₦)', 'purchasePrice', { type: 'number', placeholder: '0.00' })}
           </div>
