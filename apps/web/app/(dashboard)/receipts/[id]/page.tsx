@@ -62,7 +62,7 @@ export default function ReceiptDetailPage() {
   const typeLabel = receipt.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="p-4 md:p-6 max-w-3xl">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.push('/receipts')} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px' }}>← Receipts</button>
         <span style={{ color: 'var(--color-border)' }}>/</span>

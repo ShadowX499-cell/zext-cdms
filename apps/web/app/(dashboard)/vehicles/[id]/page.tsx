@@ -47,14 +47,14 @@ export default function VehicleDetailPage() {
   );
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.push('/vehicles')} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px' }}>← Inventory</button>
         <span style={{ color: 'var(--color-border)' }}>/</span>
         <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{vehicle.name}</span>
       </div>
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: '1fr 1fr' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Photo gallery */}

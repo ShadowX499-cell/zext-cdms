@@ -46,14 +46,14 @@ export default function CustomerDetailPage() {
   const totalSpend = customer.sales.reduce((sum, s) => sum + parseFloat(s.sellingPrice), 0);
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="p-4 md:p-6 max-w-3xl">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.push('/customers')} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px' }}>← Customers</button>
         <span style={{ color: 'var(--color-border)' }}>/</span>
         <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{customer.name}</span>
       </div>
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: '1fr 1fr' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profile */}
         <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
