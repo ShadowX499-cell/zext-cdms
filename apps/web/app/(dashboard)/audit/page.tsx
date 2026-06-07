@@ -61,8 +61,8 @@ export default function AuditLogPage() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Audit Log</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{total} entries · immutable record of all system actions</p>
@@ -75,7 +75,7 @@ export default function AuditLogPage() {
 
       {error && <p style={{ color: '#ef4444', marginBottom: '12px', fontSize: '13px' }}>{error}</p>}
 
-      <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div className="hidden md:block" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
@@ -115,6 +115,37 @@ export default function AuditLogPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="block md:hidden space-y-2">
+        {loading ? (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>Loading…</p>
+        ) : entries.length === 0 ? (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>No audit entries yet</p>
+        ) : entries.map((entry) => (
+          <div
+            key={entry.id}
+            style={{
+              background: 'var(--color-bg-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '10px',
+              padding: '12px 14px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '16px', flexShrink: 0 }}>{CATEGORY_ICONS[entry.category] ?? '•'}</span>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-primary)', flex: 1 }}>{entry.action}</p>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                {entry.user?.name} · {new Date(entry.timestamp).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              </p>
+              {entry.recordType && entry.recordId && (
+                <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{entry.recordType}: {entry.recordId.slice(0, 8)}…</p>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
 
       <Pagination page={page} limit={25} total={total} onPage={setPage} />
