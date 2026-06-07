@@ -96,7 +96,7 @@ export default function RegisterAccessorySalePage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-4 md:p-6 max-w-2xl">
       <div className="mb-6">
         <button onClick={() => router.push('/accessories')} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', marginBottom: '8px' }}>← Accessories</button>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Record Accessory Sale</h1>
@@ -165,11 +165,11 @@ export default function RegisterAccessorySalePage() {
         {/* Buyer & payment */}
         <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Buyer & Payment</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label style={labelStyle}>Buyer Name *</label><input style={inputStyle} required value={form.buyerName} onChange={(e) => set('buyerName', e.target.value)} placeholder="Customer name" /></div>
             <div><label style={labelStyle}>Phone</label><input style={inputStyle} value={form.buyerPhone} onChange={(e) => set('buyerPhone', e.target.value)} placeholder="Optional" /></div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label style={labelStyle}>Date of Sale *</label><input style={inputStyle} type="date" required value={form.dateSold} onChange={(e) => set('dateSold', e.target.value)} /></div>
             <div><label style={labelStyle}>Payment Mode *</label>
               <select style={inputStyle} value={form.paymentMode} onChange={(e) => set('paymentMode', e.target.value)}>
