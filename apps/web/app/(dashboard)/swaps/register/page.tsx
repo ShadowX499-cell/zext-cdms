@@ -105,7 +105,7 @@ export default function RegisterSwapPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-4 md:p-6 max-w-2xl">
       <div className="mb-6">
         <button onClick={() => router.back()} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', marginBottom: '8px' }}>← Back</button>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Register Swap Deal</h1>
@@ -125,7 +125,7 @@ export default function RegisterSwapPage() {
         {/* Swap terms */}
         <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Swap Terms</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label style={labelStyle}>Date of Swap *</label>
               <input style={inputStyle} type="date" required value={form.dateOfSwap} onChange={(e) => set('dateOfSwap', e.target.value)} />
@@ -141,7 +141,7 @@ export default function RegisterSwapPage() {
             <label style={labelStyle}>Witness Name *</label>
             <input style={inputStyle} required value={form.witnessName} onChange={(e) => set('witnessName', e.target.value)} placeholder="Full name of witness" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label style={labelStyle}>Cash Difference (₦)</label>
               <input style={inputStyle} type="number" min="0" step="0.01" value={form.cashDifference} onChange={(e) => set('cashDifference', e.target.value)} placeholder="0.00 (leave blank for direct)" />
