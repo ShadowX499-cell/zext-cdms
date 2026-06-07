@@ -37,8 +37,8 @@ export default function ReceiptsPage() {
   const typeLabel = (t: string) => t.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Receipts</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{total} receipts issued</p>
@@ -54,7 +54,7 @@ export default function ReceiptsPage() {
 
       {error && <p style={{ color: '#ef4444', marginBottom: '12px', fontSize: '13px' }}>{error}</p>}
 
-      <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div className="hidden md:block" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
@@ -98,6 +98,43 @@ export default function ReceiptsPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="block md:hidden space-y-2">
+        {loading ? (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>Loading…</p>
+        ) : receipts.length === 0 ? (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>No receipts yet</p>
+        ) : receipts.map((r) => (
+          <div
+            key={r.id}
+            onClick={() => router.push(`/receipts/${r.id}`)}
+            style={{
+              background: 'var(--color-bg-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-bg-elevated)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-bg-surface)')}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+              <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)', fontFamily: 'monospace' }}>{r.receiptNumber}</p>
+              <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)', marginLeft: '8px', flexShrink: 0 }}>
+                {r.sale?.sellingPrice ? formatNaira(parseFloat(r.sale.sellingPrice)) : '—'}
+              </p>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <p style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                {r.sale?.vehicle?.name ?? '—'} · {r.sale?.buyerName ?? ''} · {formatDate(r.receiptDate)}
+              </p>
+              {r.isVoided
+                ? <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: 700 }}>VOIDED</span>
+                : <span style={{ fontSize: '10px', color: '#10b981', fontWeight: 600 }}>Valid</span>}
+            </div>
+          </div>
+        ))}
       </div>
 
       <Pagination page={page} limit={20} total={total} onPage={setPage} />
