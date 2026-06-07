@@ -93,7 +93,7 @@ export default function RegisterSalePage() {
   );
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-4 md:p-6 max-w-2xl">
       <div className="mb-6">
         <button onClick={() => router.back()} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', marginBottom: '8px' }}>← Back</button>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Register Sale</h1>
@@ -150,7 +150,7 @@ export default function RegisterSalePage() {
         {/* Buyer info */}
         <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Buyer Information</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {field('Buyer Name *', 'buyerName', { required: true })}
             {field('Buyer Phone *', 'buyerPhone', { required: true })}
           </div>
@@ -161,7 +161,7 @@ export default function RegisterSalePage() {
         {/* Sale terms */}
         <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sale Terms</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {field('Date of Sale *', 'dateSold', { type: 'date', required: true })}
             <div>
               <label style={labelStyle}>Mode of Sale *</label>
