@@ -31,6 +31,13 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
+    if (!sidebarOpen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setSidebarOpen(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [sidebarOpen]);
+
+  useEffect(() => {
     if (!hydrated) return;
     if (!user || !accessToken) {
       router.replace('/login');
@@ -85,9 +92,9 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto w-[220px] flex flex-col flex-shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${
+        className={`fixed lg:relative inset-y-0 lg:top-0 left-0 z-40 lg:z-auto w-[220px] flex flex-col flex-shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        } ${showSessionWarning ? 'top-[52px]' : 'top-0'}`}
         style={{
           background: '#0d0d0d',
           borderRight: '1px solid var(--color-border)',
@@ -186,6 +193,7 @@ export default function DashboardLayout({
               justifyContent: 'center',
             }}
             aria-label="Toggle navigation"
+            aria-expanded={sidebarOpen}
           >
             ☰
           </button>
