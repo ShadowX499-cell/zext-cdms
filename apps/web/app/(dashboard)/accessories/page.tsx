@@ -67,8 +67,8 @@ export default function AccessoriesPage() {
   const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.06em', color: 'var(--color-text-muted)', marginBottom: '6px' };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Accessories & Bikes</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{total} items in inventory</p>
@@ -85,7 +85,7 @@ export default function AccessoriesPage() {
         <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '24px', maxWidth: '600px' }}>
           <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '20px' }}>Add New Item</h2>
           <form onSubmit={handleAddItem} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div><label style={labelStyle}>Name *</label><input style={inputStyle} required value={form.name} onChange={(e) => setF('name', e.target.value)} /></div>
               <div><label style={labelStyle}>Category *</label>
                 <select style={inputStyle} value={form.category} onChange={(e) => setF('category', e.target.value)}>
@@ -95,16 +95,16 @@ export default function AccessoriesPage() {
               </div>
             </div>
             <div><label style={labelStyle}>Description</label><input style={inputStyle} value={form.description} onChange={(e) => setF('description', e.target.value)} /></div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div><label style={labelStyle}>Qty in Stock *</label><input style={inputStyle} type="number" min="0" required value={form.quantityInStock} onChange={(e) => setF('quantityInStock', e.target.value)} /></div>
               <div><label style={labelStyle}>Low Stock Threshold *</label><input style={inputStyle} type="number" min="0" required value={form.lowStockThreshold} onChange={(e) => setF('lowStockThreshold', e.target.value)} /></div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div><label style={labelStyle}>Selling Price (₦) *</label><input style={inputStyle} type="number" min="0" step="0.01" required value={form.sellingPrice} onChange={(e) => setF('sellingPrice', e.target.value)} /></div>
               <div><label style={labelStyle}>Cost Price (₦)</label><input style={inputStyle} type="number" min="0" step="0.01" value={form.costPrice} onChange={(e) => setF('costPrice', e.target.value)} /></div>
             </div>
             {form.category === 'SCOOTER_BIKE' && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label style={labelStyle}>Chassis Number</label><input style={{ ...inputStyle, fontFamily: 'monospace' }} value={form.chassisNumber} onChange={(e) => setF('chassisNumber', e.target.value)} /></div>
                 <div><label style={labelStyle}>Engine Number</label><input style={{ ...inputStyle, fontFamily: 'monospace' }} value={form.engineNumber} onChange={(e) => setF('engineNumber', e.target.value)} /></div>
               </div>
@@ -124,7 +124,7 @@ export default function AccessoriesPage() {
               placeholder="Search items..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
           </div>
 
-          <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
+          <div className="hidden md:block" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
@@ -161,6 +161,41 @@ export default function AccessoriesPage() {
               </tbody>
             </table>
           </div>
+          <div className="block md:hidden space-y-2">
+            {loading ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>Loading…</p>
+            ) : items.length === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>No items yet — add your first item</p>
+            ) : items.map((item) => {
+              const isLow = item.quantityInStock <= item.lowStockThreshold;
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    background: 'var(--color-bg-surface)',
+                    border: `1px solid ${isLow ? 'rgba(245,158,11,0.4)' : 'var(--color-border)'}`,
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{item.name}</p>
+                      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{item.category.replace(/_/g, ' ')}</p>
+                    </div>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)', flexShrink: 0, marginLeft: '8px' }}>{formatNaira(parseFloat(item.sellingPrice))}</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Stock: <strong style={{ color: isLow ? '#f59e0b' : 'var(--color-text-primary)' }}>{item.quantityInStock}</strong> / threshold {item.lowStockThreshold}</p>
+                    {isLow
+                      ? <span style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, background: 'rgba(245,158,11,0.12)', padding: '2px 7px', borderRadius: '4px', border: '1px solid rgba(245,158,11,0.3)' }}>LOW STOCK</span>
+                      : <span style={{ fontSize: '10px', color: '#10b981', fontWeight: 600, background: 'rgba(16,185,129,0.12)', padding: '2px 7px', borderRadius: '4px', border: '1px solid rgba(16,185,129,0.25)' }}>In Stock</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           <Pagination page={page} limit={20} total={total} onPage={setPage} />
         </>
       )}
