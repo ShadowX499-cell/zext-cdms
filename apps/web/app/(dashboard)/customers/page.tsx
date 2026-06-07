@@ -32,8 +32,8 @@ export default function CustomersPage() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Customers</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>{total} customers registered</p>
@@ -42,7 +42,7 @@ export default function CustomersPage() {
 
       <div className="flex gap-3 mb-5">
         <input
-          style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text-primary)', padding: '7px 12px', fontSize: '13px', outline: 'none', minWidth: '260px' }}
+          style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text-primary)', padding: '7px 12px', fontSize: '13px', outline: 'none', width: '100%' }}
           placeholder="Search by name or phone..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -51,7 +51,7 @@ export default function CustomersPage() {
 
       {error && <p style={{ color: '#ef4444', marginBottom: '12px', fontSize: '13px' }}>{error}</p>}
 
-      <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div className="hidden md:block" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
@@ -90,6 +90,40 @@ export default function CustomersPage() {
           </tbody>
         </table>
       </div>
+      <div className="block md:hidden space-y-2">
+        {loading ? (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>Loading…</p>
+        ) : customers.length === 0 ? (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>No customers yet</p>
+        ) : customers.map((c) => (
+          <div
+            key={c.id}
+            onClick={() => router.push(`/customers/${c.id}`)}
+            style={{
+              background: 'var(--color-bg-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-bg-elevated)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-bg-surface)')}
+          >
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#ef4444,#f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+              {c.name.charAt(0).toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>{c.name}</p>
+              <p style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{c.phone} · {formatDate(c.createdAt)}</p>
+            </div>
+            <span style={{ fontSize: '12px', color: '#ef4444' }}>→</span>
+          </div>
+        ))}
+      </div>
+
       <Pagination page={page} limit={20} total={total} onPage={setPage} />
     </div>
   );
