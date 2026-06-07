@@ -28,6 +28,8 @@ export default function DashboardLayout({
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => { setHydrated(true); }, []);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   useEffect(() => {
     if (!hydrated) return;
     if (!user || !accessToken) {
@@ -83,14 +85,24 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside
-        className="w-[220px] flex flex-col flex-shrink-0"
+        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto w-[220px] flex flex-col flex-shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
         style={{
           background: '#0d0d0d',
           borderRight: '1px solid var(--color-border)',
         }}
       >
-        <div className="p-5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: 'var(--color-border)' }}>
           <Wordmark size="sm" />
+          <button
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}
+            aria-label="Close navigation"
+          >
+            ✕
+          </button>
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -136,13 +148,61 @@ export default function DashboardLayout({
         </div>
       </aside>
 
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Main area with topbar */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header style={{ height: 52, background: '#0d0d0d', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '20px', flexShrink: 0, gap: '12px' }}>
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <header
+          style={{
+            height: 52,
+            background: '#0d0d0d',
+            borderBottom: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            flexShrink: 0,
+            paddingRight: '20px',
+            gap: '12px',
+          }}
+        >
+          <button
+            className="lg:hidden"
+            onClick={() => setSidebarOpen((o) => !o)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-text-primary)',
+              cursor: 'pointer',
+              fontSize: '20px',
+              width: 52,
+              height: 52,
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            aria-label="Toggle navigation"
+          >
+            ☰
+          </button>
+          <div className="flex-1" />
           <NotificationBell />
           <button
             onClick={() => router.push('/sales/register')}
-            style={{ background: 'linear-gradient(135deg,#ef4444,#f97316)', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+            style={{
+              background: 'linear-gradient(135deg,#ef4444,#f97316)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '6px 14px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
           >
             + New Record
           </button>
