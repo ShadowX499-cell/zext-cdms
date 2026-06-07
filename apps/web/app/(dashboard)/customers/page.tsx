@@ -94,7 +94,7 @@ export default function CustomersPage() {
         {loading ? (
           <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>Loading…</p>
         ) : customers.length === 0 ? (
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>No customers yet</p>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', padding: '32px', textAlign: 'center' }}>No customers yet — they are created when registering sales</p>
         ) : customers.map((c) => (
           <div
             key={c.id}

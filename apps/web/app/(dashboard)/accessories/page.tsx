@@ -120,7 +120,7 @@ export default function AccessoriesPage() {
       ) : (
         <>
           <div className="flex gap-3 mb-5">
-            <input style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text-primary)', padding: '7px 12px', fontSize: '13px', outline: 'none', minWidth: '220px' }}
+            <input style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text-primary)', padding: '7px 12px', fontSize: '13px', outline: 'none', width: '100%' }}
               placeholder="Search items..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
           </div>
 
