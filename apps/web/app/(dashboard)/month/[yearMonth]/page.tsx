@@ -53,6 +53,7 @@ export default function MonthlyDetailPage() {
   const [detail, setDetail] = useState<MonthlyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredSaleId, setHoveredSaleId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!admin) { router.replace('/dashboard'); return; }
@@ -95,7 +96,7 @@ export default function MonthlyDetailPage() {
         </button>
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-            {loading ? '...' : (detail?.label ?? yearMonth)}
+            {detail?.label ?? yearMonth}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 2 }}>
             Monthly Performance Report
@@ -242,10 +243,10 @@ export default function MonthlyDetailPage() {
                   {detail.topSales.map((s) => (
                     <tr
                       key={s.id}
-                      style={{ borderBottom: '1px solid var(--color-border)', cursor: s.receiptId ? 'pointer' : 'default' }}
                       onClick={() => s.receiptId && router.push(`/receipts/${s.receiptId}`)}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      onMouseEnter={() => setHoveredSaleId(s.id)}
+                      onMouseLeave={() => setHoveredSaleId(null)}
+                      style={{ borderBottom: '1px solid var(--color-border)', cursor: s.receiptId ? 'pointer' : 'default', background: hoveredSaleId === s.id ? 'rgba(255,255,255,0.03)' : 'transparent' }}
                     >
                       <td style={{ padding: '12px 16px', color: 'var(--color-text-primary)', fontWeight: 600 }}>{s.vehicleName}</td>
                       <td style={{ padding: '12px 16px', color: 'var(--color-text-muted)' }}>{s.buyerName}</td>
