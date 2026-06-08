@@ -129,9 +129,7 @@ export class DashboardService {
           year,
           monthNum: month + 1,
           revenue: revenueResult._sum.sellingPrice
-            ? (revenueResult._sum.sellingPrice as any).toNumber
-              ? (revenueResult._sum.sellingPrice as any).toNumber()
-              : Number(revenueResult._sum.sellingPrice.toString())
+            ? Number(revenueResult._sum.sellingPrice.toString())
             : 0,
           soldCount,
           registeredCount,

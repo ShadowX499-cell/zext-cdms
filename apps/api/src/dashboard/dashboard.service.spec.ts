@@ -57,7 +57,7 @@ describe('DashboardService', () => {
 
     it('returns revenue as a number (not Decimal)', async () => {
       mockPrisma.sale.aggregate.mockResolvedValue({
-        _sum: { sellingPrice: { toNumber: () => 9500000 } },
+        _sum: { sellingPrice: { toString: () => '9500000' } },
       });
       mockPrisma.sale.count.mockResolvedValue(2);
       mockPrisma.vehicle.count.mockResolvedValue(5);
