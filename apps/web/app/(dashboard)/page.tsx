@@ -6,6 +6,7 @@ import { useAuthStore, isAdmin } from '@/stores/auth.store';
 import { dashboardApi, DashboardMetrics } from '@/lib/api-client';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { formatDate, formatNaira } from '@/lib/utils';
+import { MonthlyHistogram } from '@/components/dashboard/MonthlyHistogram';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -71,7 +72,7 @@ export default function DashboardPage() {
           {admin && metrics.revenueThisYear != null && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {metricCard('Revenue This Year', formatNaira(parseFloat(metrics.revenueThisYear)), 'from all confirmed sales')}
-              {metricCard('Total Revenue (All Time)', formatNaira(parseFloat(metrics.totalRevenue ?? '0')), 'cumulative confirmed sales')}
+              <MonthlyHistogram />
             </div>
           )}
 
