@@ -294,9 +294,51 @@ export const customersApi = {
 
 // ── Dashboard API ─────────────────────────────────────────────────────────────
 
+export interface MonthlyHistogramItem {
+  month: string;
+  year: number;
+  monthNum: number;
+  revenue: number;
+  soldCount: number;
+  registeredCount: number;
+}
+
+export interface MonthlyDetail {
+  label: string;
+  yearMonth: string;
+  metrics: {
+    totalRevenue: number;
+    grossProfit: number;
+    totalSold: number;
+    totalRegistered: number;
+  };
+  dailySales: Array<{ day: number; revenue: number; count: number }>;
+  byCategory: Array<{
+    category: string;
+    soldCount: number;
+    registeredCount: number;
+    revenue: number;
+  }>;
+  byModeOfSale: Array<{ mode: string; count: number; revenue: number }>;
+  topSales: Array<{
+    id: string;
+    vehicleName: string;
+    buyerName: string;
+    sellingPrice: number;
+    dateSold: string;
+    receiptId: string;
+  }>;
+}
+
 export const dashboardApi = {
   metrics: (token: string) =>
     apiRequest<DashboardMetrics>('/dashboard/metrics', { token }),
+
+  monthlyHistogram: (token: string) =>
+    apiRequest<MonthlyHistogramItem[]>('/dashboard/monthly-histogram', { token }),
+
+  monthlyDetail: (token: string, yearMonth: string) =>
+    apiRequest<MonthlyDetail>(`/dashboard/monthly-detail/${yearMonth}`, { token }),
 };
 
 // ── Swaps API ─────────────────────────────────────────────────────────────────
