@@ -89,4 +89,56 @@ export class DashboardService {
       totalRevenue: totalRevenueResult._sum.sellingPrice?.toString() ?? '0',
     };
   }
+
+  async getMonthlyHistogram() {
+    const now = new Date();
+    const months = Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+      return { year: d.getFullYear(), month: d.getMonth() };
+    });
+
+    const results = await Promise.all(
+      months.map(async ({ year, month }) => {
+        const from = new Date(year, month, 1);
+        const to = new Date(year, month + 1, 1);
+
+        const [revenueResult, soldCount, registeredCount] = await Promise.all([
+          this.prisma.sale.aggregate({
+            where: {
+              dateSold: { gte: from, lt: to },
+              isReversed: false,
+              receipt: { isVoided: false },
+            },
+            _sum: { sellingPrice: true },
+          }),
+          this.prisma.sale.count({
+            where: {
+              dateSold: { gte: from, lt: to },
+              isReversed: false,
+            },
+          }),
+          this.prisma.vehicle.count({
+            where: { createdAt: { gte: from, lt: to } },
+          }),
+        ]);
+
+        const monthLabel = from.toLocaleString('en-GB', { month: 'short', year: '2-digit' });
+
+        return {
+          month: monthLabel,
+          year,
+          monthNum: month + 1,
+          revenue: revenueResult._sum.sellingPrice
+            ? (revenueResult._sum.sellingPrice as any).toNumber
+              ? (revenueResult._sum.sellingPrice as any).toNumber()
+              : Number(revenueResult._sum.sellingPrice.toString())
+            : 0,
+          soldCount,
+          registeredCount,
+        };
+      }),
+    );
+
+    return results;
+  }
 }
