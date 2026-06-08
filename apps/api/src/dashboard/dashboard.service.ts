@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { VehicleStatus, UserRole } from '@prisma/client';
 
@@ -138,5 +138,118 @@ export class DashboardService {
     );
 
     return results;
+  }
+
+  async getMonthlyDetail(yearMonth: string) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(yearMonth)) {
+      throw new BadRequestException(`Invalid yearMonth format: ${yearMonth}. Expected YYYY-MM`);
+    }
+
+    const [yearStr, monthStr] = yearMonth.split('-');
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10) - 1; // 0-indexed for Date
+    const from = new Date(year, month, 1);
+    const to = new Date(year, month + 1, 1);
+
+    const label = from.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+
+    const [sales, registeredVehicles] = await Promise.all([
+      this.prisma.sale.findMany({
+        where: {
+          dateSold: { gte: from, lt: to },
+          isReversed: false,
+          receipt: { isVoided: false },
+        },
+        select: {
+          id: true,
+          dateSold: true,
+          buyerName: true,
+          sellingPrice: true,
+          modeOfSale: true,
+          vehicle: { select: { name: true, category: true, purchasePrice: true } },
+          receipt: { select: { id: true } },
+        },
+        orderBy: { sellingPrice: 'desc' },
+      }),
+      this.prisma.vehicle.findMany({
+        where: { createdAt: { gte: from, lt: to } },
+        select: { category: true },
+      }),
+    ]);
+
+    let totalRevenue = 0;
+    let grossProfit = 0;
+
+    for (const sale of sales) {
+      const sp = Number(sale.sellingPrice.toString());
+      totalRevenue += sp;
+      if (sale.vehicle.purchasePrice != null) {
+        grossProfit += sp - Number(sale.vehicle.purchasePrice.toString());
+      }
+    }
+
+    const dailyMap = new Map<number, { revenue: number; count: number }>();
+    for (const sale of sales) {
+      const day = new Date(sale.dateSold).getDate();
+      const entry = dailyMap.get(day) ?? { revenue: 0, count: 0 };
+      entry.revenue += Number(sale.sellingPrice.toString());
+      entry.count += 1;
+      dailyMap.set(day, entry);
+    }
+    const dailySales = Array.from(dailyMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([day, data]) => ({ day, ...data }));
+
+    const categoryMap = new Map<string, { soldCount: number; revenue: number; registeredCount: number }>();
+    for (const sale of sales) {
+      const cat = sale.vehicle.category;
+      const entry = categoryMap.get(cat) ?? { soldCount: 0, revenue: 0, registeredCount: 0 };
+      entry.soldCount += 1;
+      entry.revenue += Number(sale.sellingPrice.toString());
+      categoryMap.set(cat, entry);
+    }
+    for (const v of registeredVehicles) {
+      const cat = v.category;
+      const entry = categoryMap.get(cat) ?? { soldCount: 0, revenue: 0, registeredCount: 0 };
+      entry.registeredCount += 1;
+      categoryMap.set(cat, entry);
+    }
+    const byCategory = Array.from(categoryMap.entries()).map(([category, data]) => ({ category, ...data }));
+
+    const modeMap = new Map<string, { count: number; revenue: number }>();
+    for (const sale of sales) {
+      const mode = sale.modeOfSale;
+      const entry = modeMap.get(mode) ?? { count: 0, revenue: 0 };
+      entry.count += 1;
+      entry.revenue += Number(sale.sellingPrice.toString());
+      modeMap.set(mode, entry);
+    }
+    const byModeOfSale = Array.from(modeMap.entries())
+      .sort(([, a], [, b]) => b.revenue - a.revenue)
+      .map(([mode, data]) => ({ mode, ...data }));
+
+    const topSales = sales.map((sale) => ({
+      id: sale.id,
+      vehicleName: sale.vehicle.name,
+      buyerName: sale.buyerName,
+      sellingPrice: Number(sale.sellingPrice.toString()),
+      dateSold: sale.dateSold.toISOString(),
+      receiptId: sale.receipt?.id ?? '',
+    }));
+
+    return {
+      label,
+      yearMonth,
+      metrics: {
+        totalRevenue,
+        grossProfit,
+        totalSold: sales.length,
+        totalRegistered: registeredVehicles.length,
+      },
+      dailySales,
+      byCategory,
+      byModeOfSale,
+      topSales,
+    };
   }
 }
