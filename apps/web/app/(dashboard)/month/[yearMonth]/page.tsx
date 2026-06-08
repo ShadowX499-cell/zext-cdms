@@ -56,7 +56,7 @@ export default function MonthlyDetailPage() {
   const [hoveredSaleId, setHoveredSaleId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!admin) { router.replace('/dashboard'); return; }
+    if (!admin) { router.replace('/'); return; }
     if (!token) return;
     dashboardApi.monthlyDetail(token, yearMonth)
       .then(setDetail)
@@ -85,7 +85,7 @@ export default function MonthlyDetailPage() {
     <div className="p-4 md:p-6">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <button
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push('/')}
           style={{
             background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)',
             borderRadius: 8, padding: '6px 14px', fontSize: 13, color: 'var(--color-text-muted)',

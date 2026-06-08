@@ -67,7 +67,7 @@ export function MonthlyHistogram() {
 
   const handleBarClick = (entry: MonthlyHistogramItem) => {
     const mm = String(entry.monthNum).padStart(2, '0');
-    router.push(`/dashboard/month/${entry.year}-${mm}`);
+    router.push(`/month/${entry.year}-${mm}`);
   };
 
   return (
