@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseFilePipe,
   Patch,
   Post,
   Query,
@@ -121,7 +122,7 @@ export class VehiclesController {
   @UseInterceptors(documentUploadInterceptor)
   addDocument(
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(new ParseFilePipe({ fileIsRequired: true })) file: Express.Multer.File,
     @CurrentUser() user: AuthUser,
   ) {
     return this.vehicles.addDocument(id, file, user.id);

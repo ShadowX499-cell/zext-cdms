@@ -42,10 +42,11 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
     if (!photo) return;
     setUploading(true);
     setError(null);
+    const oldPhotoId = photo.id;
     try {
       const newPhoto = await vehiclesApi.uploadPhoto(token, vehicleId, file);
-      await vehiclesApi.deletePhoto(token, vehicleId, photo.id);
       setPhoto({ id: newPhoto.id, url: newPhoto.url });
+      vehiclesApi.deletePhoto(token, vehicleId, oldPhotoId).catch(() => null);
     } catch {
       setError('Replace failed. Please try again.');
     } finally {
