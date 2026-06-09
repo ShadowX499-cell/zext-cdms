@@ -24,7 +24,7 @@ The image area is a static placeholder (car emoji) with no interactivity. The ex
 - Render the photo as a full-bleed image inside the zone.
 - The "Upload Photo" button is **gone**.
 - Two buttons are overlaid in the top-right corner of the image:
-  - **✏️ Replace** — opens a file picker. On file selection → DELETE existing photo then POST new photo → refresh image.
+  - **✏️ Replace** — opens a file picker. On file selection → POST new photo first (so there's never a gap) → then DELETE old photo → refresh image.
   - **🗑 Delete** — shows a confirmation prompt. On confirm → DELETE photo → revert to State A.
 - Only one photo is supported per vehicle (the cover photo).
 
@@ -53,11 +53,11 @@ Both panels share equal visual weight. If there are many history entries, the hi
 
 **Document list**
 - Each uploaded document shown as a row: file-type icon (📄 for PDF, 🖼️ for image) + filename + file size + upload date.
-- Two icon buttons per row: **⬇️ Download** (opens file in new tab / triggers download) and **🗑 Delete** (confirmation → DELETE endpoint → remove from list).
+- Two icon buttons per row: **⬇️ Download** (an `<a href={url} target="_blank">` to the static file URL — browser handles PDF/image natively) and **🗑 Delete** (user must confirm → DELETE endpoint → remove from list).
 
 **Upload**
 - "**+ Upload Document**" button always visible at the bottom of the list.
-- Accepted: PDF, JPG, PNG. No stated size limit yet — use 10 MB server-side.
+- Accepted: PDF, JPG, PNG. Max 10 MB per file (enforced server-side).
 - Multiple documents allowed (no cap).
 - On file selection → POST to new endpoint → prepend to list on success.
 
