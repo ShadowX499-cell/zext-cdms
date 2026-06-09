@@ -33,6 +33,18 @@ const photoUploadInterceptor = FileInterceptor('photo', {
   },
 });
 
+const documentUploadInterceptor = FileInterceptor('file', {
+  storage: memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (/^(application\/pdf|image\/(jpeg|png))$/.test(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF, JPG, and PNG files are allowed'), false);
+    }
+  },
+});
+
 @ApiTags('Vehicles')
 @ApiBearerAuth('JWT')
 @Controller('vehicles')
@@ -101,5 +113,26 @@ export class VehiclesController {
     @Param('photoId') photoId: string,
   ) {
     return this.vehicles.deletePhoto(photoId, vehicleId);
+  }
+
+  @Post(':id/documents')
+  @ApiOperation({ summary: 'Upload a paper document for a vehicle (PDF/JPG/PNG, max 10 MB)' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(documentUploadInterceptor)
+  addDocument(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.vehicles.addDocument(id, file, user.id);
+  }
+
+  @Delete(':vehicleId/documents/:documentId')
+  @ApiOperation({ summary: 'Delete a vehicle paper document' })
+  deleteDocument(
+    @Param('vehicleId') vehicleId: string,
+    @Param('documentId') documentId: string,
+  ) {
+    return this.vehicles.deleteDocument(documentId, vehicleId);
   }
 }
