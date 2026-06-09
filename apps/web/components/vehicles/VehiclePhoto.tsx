@@ -21,14 +21,18 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
   const [photo, setPhoto] = useState<Photo | null>(initialPhoto);
   const [uploading, setUploading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
   const replaceRef = useRef<HTMLInputElement>(null);
 
   async function handleUpload(file: File) {
     setUploading(true);
+    setError(null);
     try {
       const newPhoto = await vehiclesApi.uploadPhoto(token, vehicleId, file);
-      setPhoto(newPhoto);
+      setPhoto({ id: newPhoto.id, url: newPhoto.url });
+    } catch {
+      setError('Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -37,10 +41,13 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
   async function handleReplace(file: File) {
     if (!photo) return;
     setUploading(true);
+    setError(null);
     try {
       const newPhoto = await vehiclesApi.uploadPhoto(token, vehicleId, file);
       await vehiclesApi.deletePhoto(token, vehicleId, photo.id);
-      setPhoto(newPhoto);
+      setPhoto({ id: newPhoto.id, url: newPhoto.url });
+    } catch {
+      setError('Replace failed. Please try again.');
     } finally {
       setUploading(false);
       if (replaceRef.current) replaceRef.current.value = '';
@@ -50,9 +57,12 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
   async function handleDelete() {
     if (!photo) return;
     setUploading(true);
+    setError(null);
     try {
       await vehiclesApi.deletePhoto(token, vehicleId, photo.id);
       setPhoto(null);
+    } catch {
+      setError('Delete failed. Please try again.');
     } finally {
       setUploading(false);
       setShowConfirm(false);
@@ -114,6 +124,11 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
             e.target.value = '';
           }}
         />
+        {error && (
+          <p style={{ color: '#ef4444', fontSize: '11px', margin: '4px 0 0', textAlign: 'center' }}>
+            {error}
+          </p>
+        )}
       </>
     );
   }
@@ -123,7 +138,7 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
       <div style={containerStyle}>
         <img
           src={`${API_HOST}${photo.url}`}
-          alt="Vehicle"
+          alt="Vehicle photo"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6 }}>
@@ -138,7 +153,7 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
               padding: '4px 10px',
               fontSize: '11px',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: uploading ? 'default' : 'pointer',
             }}
           >
             ✏️ Replace
@@ -154,7 +169,7 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
               padding: '4px 10px',
               fontSize: '11px',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: uploading ? 'default' : 'pointer',
             }}
           >
             🗑 Delete
@@ -172,6 +187,11 @@ export function VehiclePhoto({ vehicleId, initialPhoto, token }: Props) {
           e.target.value = '';
         }}
       />
+      {error && (
+        <p style={{ color: '#ef4444', fontSize: '11px', margin: '4px 0 0', textAlign: 'center' }}>
+          {error}
+        </p>
+      )}
       {showConfirm && (
         <ConfirmModal
           title="Delete Photo"
