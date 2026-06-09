@@ -120,6 +120,7 @@ model User {
   receiptsIssued Receipt[]        @relation("IssuedBy")
   receiptsVoided Receipt[]        @relation("VoidedBy")
   vehicleHistory VehicleHistory[]
+  vehicleDocs    VehicleDocument[]
   accessorySales AccessorySale[]
   auditLogs      AuditLog[]
   notifications  Notification[]
@@ -170,6 +171,7 @@ model Vehicle {
 
   registeredBy User            @relation("RegisteredBy", fields: [registeredById], references: [id])
   photos       VehiclePhoto[]
+  documents    VehicleDocument[]
   history      VehicleHistory[]
   sale         Sale?
   outgoingSwap Swap?            @relation("OutgoingVehicle")
@@ -394,4 +396,19 @@ model SystemSetting {
   value       String
   updatedById String?
   updatedAt   DateTime @updatedAt
+}
+
+model VehicleDocument {
+  id           String   @id @default(cuid())
+  vehicleId    String
+  url          String
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  vehicle    Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id])
 }
