@@ -46,6 +46,20 @@ export async function apiRequest<T>(
   return res.json() as Promise<T>;
 }
 
+async function apiUpload<T>(path: string, token: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, errorBody);
+  }
+  return res.json() as Promise<T>;
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     apiRequest<{ userId: string; message: string }>('/auth/login', {
@@ -101,6 +115,7 @@ export interface Vehicle {
   photos?: { id: string; url: string; isCover: boolean }[];
   registeredBy?: { name: string };
   history?: VehicleHistoryEntry[];
+  documents?: VehicleDocument[];
   sale?: { id: string; dateSold: string; buyerName: string; sellingPrice: string; modeOfSale: string; isReversed: boolean } | null;
 }
 
@@ -110,6 +125,17 @@ export interface VehicleHistoryEntry {
   description: string;
   createdAt: string;
   performedBy: { name: string };
+}
+
+export interface VehicleDocument {
+  id: string;
+  vehicleId: string;
+  url: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  createdAt: string;
 }
 
 export interface Sale {
@@ -221,6 +247,34 @@ export const vehiclesApi = {
 
   update: (token: string, id: string, data: Record<string, unknown>) =>
     apiRequest<Vehicle>(`/vehicles/${id}`, { method: 'PATCH', body: data, token }),
+
+  uploadPhoto: (token: string, vehicleId: string, file: File) => {
+    const fd = new FormData();
+    fd.append('photo', file);
+    return apiUpload<{ id: string; url: string; isCover: boolean }>(
+      `/vehicles/${vehicleId}/photos?cover=true`,
+      token,
+      fd,
+    );
+  },
+
+  deletePhoto: (token: string, vehicleId: string, photoId: string) =>
+    apiRequest<{ message: string }>(`/vehicles/${vehicleId}/photos/${photoId}`, {
+      method: 'DELETE',
+      token,
+    }),
+
+  uploadDocument: (token: string, vehicleId: string, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return apiUpload<VehicleDocument>(`/vehicles/${vehicleId}/documents`, token, fd);
+  },
+
+  deleteDocument: (token: string, vehicleId: string, documentId: string) =>
+    apiRequest<{ message: string }>(`/vehicles/${vehicleId}/documents/${documentId}`, {
+      method: 'DELETE',
+      token,
+    }),
 };
 
 // ── Sales API ─────────────────────────────────────────────────────────────────
