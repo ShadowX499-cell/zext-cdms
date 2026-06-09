@@ -81,6 +81,7 @@ export class VehiclesService {
       where: { id },
       include: {
         photos: { orderBy: { createdAt: 'asc' } },
+        documents: { orderBy: { createdAt: 'desc' } },
         registeredBy: { select: { name: true } },
         history: {
           orderBy: { createdAt: 'desc' },
@@ -259,6 +260,50 @@ export class VehiclesService {
     await fs.unlink(filePath).catch(() => null);
     await this.prisma.vehiclePhoto.delete({ where: { id: photoId } });
     return { message: 'Photo deleted' };
+  }
+
+  async addDocument(vehicleId: string, file: Express.Multer.File, userId: string) {
+    const vehicle = await this.prisma.vehicle.findUnique({ where: { id: vehicleId } });
+    if (!vehicle) throw new NotFoundException(`Vehicle ${vehicleId} not found`);
+
+    const ext = path.extname(file.originalname).toLowerCase() || this.mimeToExt(file.mimetype);
+    const filename = `${crypto.randomUUID()}${ext}`;
+    const dir = path.join(UPLOAD_BASE, vehicleId, 'docs');
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(dir, filename), file.buffer);
+
+    return this.prisma.vehicleDocument.create({
+      data: {
+        vehicleId,
+        url: `/static/${vehicleId}/docs/${filename}`,
+        filename,
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        uploadedById: userId,
+      },
+    });
+  }
+
+  async deleteDocument(documentId: string, vehicleId: string) {
+    const doc = await this.prisma.vehicleDocument.findFirst({
+      where: { id: documentId, vehicleId },
+    });
+    if (!doc) throw new NotFoundException('Document not found');
+
+    const filePath = path.join(UPLOAD_BASE, vehicleId, 'docs', doc.filename);
+    await fs.unlink(filePath).catch(() => null);
+    await this.prisma.vehicleDocument.delete({ where: { id: documentId } });
+    return { message: 'Document deleted' };
+  }
+
+  private mimeToExt(mime: string): string {
+    const map: Record<string, string> = {
+      'application/pdf': '.pdf',
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+    };
+    return map[mime] ?? '';
   }
 
   private serialize(vehicle: Record<string, unknown>, role?: UserRole) {
