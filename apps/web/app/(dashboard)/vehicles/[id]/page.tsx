@@ -6,6 +6,8 @@ import { useAuthStore, isAdmin } from '@/stores/auth.store';
 import { vehiclesApi, Vehicle } from '@/lib/api-client';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { formatDate, formatNaira } from '@/lib/utils';
+import { VehiclePhoto } from '@/components/vehicles/VehiclePhoto';
+import { VehicleDocuments } from '@/components/vehicles/VehicleDocuments';
 
 const EVENT_ICONS: Record<string, string> = {
   REGISTERED: '📋',
@@ -26,12 +28,10 @@ export default function VehicleDetailPage() {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
-
   useEffect(() => {
     if (!token) return;
     vehiclesApi.get(token, id)
-      .then((v) => { setVehicle(v); if (v.photos?.[0]) setSelectedPhoto(v.photos[0].url); })
+      .then((v) => { setVehicle(v); })
       .catch(() => setError('Failed to load vehicle'))
       .finally(() => setLoading(false));
   }, [token, id]);
@@ -57,26 +57,18 @@ export default function VehicleDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Photo gallery */}
+          {/* Photo */}
           <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px' }}>
-            <div style={{ background: 'var(--color-bg-elevated)', borderRadius: '8px', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', overflow: 'hidden' }}>
-              {selectedPhoto ? (
-                <img src={selectedPhoto} alt={vehicle.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <span style={{ fontSize: '48px', color: 'var(--color-text-muted)' }}>🚗</span>
-              )}
-            </div>
-            {(vehicle.photos?.length ?? 0) > 1 && (
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
-                {vehicle.photos!.map((p) => (
-                  <img
-                    key={p.id} src={p.url} alt=""
-                    onClick={() => setSelectedPhoto(p.url)}
-                    style={{ width: 56, height: 56, borderRadius: 6, objectFit: 'cover', cursor: 'pointer', border: selectedPhoto === p.url ? '2px solid #ef4444' : '2px solid var(--color-border)' }}
-                  />
-                ))}
-              </div>
-            )}
+            <VehiclePhoto
+              vehicleId={vehicle.id}
+              initialPhoto={
+                (() => {
+                  const p = vehicle.photos?.find((ph) => ph.isCover) ?? vehicle.photos?.[0] ?? null;
+                  return p ? { id: p.id, url: p.url } : null;
+                })()
+              }
+              token={token}
+            />
           </div>
 
           {/* Vehicle info */}
@@ -113,33 +105,43 @@ export default function VehicleDetailPage() {
           )}
         </div>
 
-        {/* Right column — history timeline */}
-        <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '16px' }}>Vehicle History</h2>
-          {(vehicle.history?.length ?? 0) === 0 ? (
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>No history yet</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-              {vehicle.history!.map((entry, i) => (
-                <div key={entry.id} style={{ display: 'flex', gap: '12px', position: 'relative', paddingBottom: '20px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
-                      {EVENT_ICONS[entry.event] ?? '•'}
+        {/* Right column — history + documents */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Vehicle History */}
+          <div style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '16px' }}>Vehicle History</h2>
+            {(vehicle.history?.length ?? 0) === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>No history yet</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                {vehicle.history!.map((entry, i) => (
+                  <div key={entry.id} style={{ display: 'flex', gap: '12px', position: 'relative', paddingBottom: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
+                        {EVENT_ICONS[entry.event] ?? '•'}
+                      </div>
+                      {i < vehicle.history!.length - 1 && (
+                        <div style={{ width: 1, flex: 1, background: 'var(--color-border)', marginTop: 4 }} />
+                      )}
                     </div>
-                    {i < vehicle.history!.length - 1 && (
-                      <div style={{ width: 1, flex: 1, background: 'var(--color-border)', marginTop: 4 }} />
-                    )}
+                    <div style={{ paddingTop: '4px' }}>
+                      <p style={{ fontSize: '13px', color: 'var(--color-text-primary)', fontWeight: 500 }}>{entry.description}</p>
+                      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '3px' }}>
+                        {formatDate(entry.createdAt)} · {entry.performedBy?.name}
+                      </p>
+                    </div>
                   </div>
-                  <div style={{ paddingTop: '4px' }}>
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-primary)', fontWeight: 500 }}>{entry.description}</p>
-                    <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '3px' }}>
-                      {formatDate(entry.createdAt)} · {entry.performedBy?.name}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Paper Documents */}
+          <VehicleDocuments
+            vehicleId={vehicle.id}
+            initialDocuments={vehicle.documents ?? []}
+            token={token}
+          />
         </div>
       </div>
     </div>
