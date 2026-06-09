@@ -411,4 +411,7 @@ model VehicleDocument {
 
   vehicle    Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   uploadedBy User    @relation(fields: [uploadedById], references: [id])
+
+  @@index([vehicleId])
+  @@index([uploadedById])
 }
